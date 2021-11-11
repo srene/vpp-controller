@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"git.fd.io/govpp.git/api"
+	"git.fd.io/govpp.git/binapi/ip_types"
+	"git.fd.io/govpp.git/binapi/sr"
 	"log"
 	"errors"
 	"github.com/spf13/cobra"
@@ -21,9 +24,10 @@ func InitAddCmd(comm *Common) *cobra.Command {
 			if comm.Stream == nil {
 				return errors.New("daemon not running")
 			}
-			if _, ok := comm.Routes[prefix]; ok {
+			if val, ok := comm.Routes[prefix]; ok {
 				//do something here
 				log.Println("Updating route")
+				updateRoute(comm.Channel, val)
 			} else {
 				log.Println("Adding route")
 			}
@@ -40,6 +44,21 @@ func InitAddCmd(comm *Common) *cobra.Command {
 	}
 }
 
+func updateRoute(ch api.Channel, route string) error {
+	ip,_:= ip_types.ParseIP6Address("1::1:999")
+	ip_sid,_:= ip_types.ParseIP6Address(route)
+	sids :=[16]ip_types.IP6Address{ip_sid}
+	sr_create := &sr.SrPolicyAdd{BsidAddr: ip,
+		IsEncap: true,
+		Sids: sr.Srv6SidList{NumSids:1,Sids: sids},
+	}
+	sr_create_reply := &sr.SrPolicyAddReply{}
+
+	err := ch.SendRequest(sr_create).ReceiveReply(sr_create_reply)
+
+	return err
+
+}
 func parseFormat(cmd *cobra.Command) Format {
 	pFlag, _ := cmd.Flags().GetBool("pretty")
 	jFlag, _ := cmd.Flags().GetBool("json")

@@ -19,15 +19,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
+
+	uds "github.com/asabya/go-ipc-uds"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/srene/vpp-controller/cmd"
-	"github.com/srene/vpp-controller/common"
+	//"github.com/srene/vpp-controller/cmd"
+	//"github.com/srene/vpp-controller/common"
 	"path/filepath"
 	"strings"
-	uds "github.com/asabya/go-ipc-uds"
 
-	logging "github.com/ipfs/go-log/v2"
 	"os"
 )
 
@@ -44,12 +45,12 @@ The VPP controller CLI client gives access to the controller through a CLI Inter
 		`,
 	}
 	sockPath = "uds.sock"
-	log      = logging.Logger("cmd")
+	//log      = logging.Logger("cmd")
 )
 
 func init() {
-	logging.SetLogLevel("uds", "Debug")
-	logging.SetLogLevel("cmd", "Debug")
+//	logging.SetLogLevel("uds", "Debug")
+//	logging.SetLogLevel("cmd", "Debug")
 }
 
 
@@ -69,7 +70,7 @@ func main() {
 		os.Exit(1)
 	}*/
 
-	comm := &common.Common{
+	comm := &Common{
 	//	Root:    root,
 		Context: ctx,
 		Cancel:  cancel,
@@ -82,9 +83,9 @@ func main() {
 	var allCommands []*cobra.Command
 	allCommands = append(
 		allCommands,
-		cmd.InitDaemonCmd(comm),
-		cmd.InitAddCmd(comm),
-		cmd.InitListCmd(comm),
+		InitDaemonCmd(comm),
+		InitAddCmd(comm),
+		InitListCmd(comm),
 		/*cmd.InitInfoCmd(comm),
 		cmd.InitStopCmd(comm),
 		cmd.InitAddCmd(comm),
@@ -104,7 +105,7 @@ func main() {
 	// check help flag
 	for _, v := range os.Args {
 		if v == "-h" || v == "--help" {
-			log.Debug("Executing help command")
+			log.Println("Executing help command")
 			rootCmd.Execute()
 			return
 		}
@@ -127,18 +128,18 @@ func main() {
 			}
 			r, w, c, err := uds.Dialer(opts)
 			if err != nil {
-				log.Error(err)
+				log.Fatalln(err)
 				goto Execute
 			}
 			defer c()
 			err = w(strings.Join(os.Args[1:], argSeparator))
 			if err != nil {
-				log.Error(err)
+				log.Fatalln(err)
 				os.Exit(1)
 			}
 			v, err := r()
 			if err != nil {
-				log.Error(err)
+				log.Fatalln(err)
 				os.Exit(1)
 
 			}
@@ -154,7 +155,7 @@ func main() {
 			if !os.IsNotExist(err) {
 				err := os.Remove(filepath.Join("/tmp", sockPath))
 				if err != nil {
-					log.Error(err)
+					log.Fatalln(err)
 					os.Exit(1)
 				}
 			}
@@ -163,7 +164,7 @@ func main() {
 			}
 			in, err := uds.Listener(context.Background(), opts)
 			if err != nil {
-				log.Error(err)
+				log.Fatalln(err)
 				os.Exit(1)
 			}
 			go func() {
@@ -179,7 +180,7 @@ func main() {
 								break
 							}
 							commandStr := string(ip)
-							log.Debug("run command :", commandStr)
+							log.Println("run command :", commandStr)
 							var (
 								childCmd *cobra.Command
 								flags    []string
@@ -193,7 +194,7 @@ func main() {
 							if err != nil {
 								err = client.Write([]byte(err.Error()))
 								if err != nil {
-									log.Error("Write error", err)
+									log.Fatalln("Write error", err)
 									client.Close()
 								}
 								break
@@ -201,14 +202,14 @@ func main() {
 							childCmd.Flags().VisitAll(func(f *pflag.Flag) {
 								err := f.Value.Set(f.DefValue)
 								if err != nil {
-									log.Error("Unable to set flags ", childCmd.Name(), f.Name, err.Error())
+									log.Fatalln("Unable to set flags ", childCmd.Name(), f.Name, err.Error())
 								}
 							})
 							if err := childCmd.Flags().Parse(flags); err != nil {
-								log.Error("Unable to parse flags ", err.Error())
+								log.Fatalln("Unable to parse flags ", err.Error())
 								err = client.Write([]byte(err.Error()))
 								if err != nil {
-									log.Error("Write error", err)
+									log.Fatalln("Write error", err)
 									client.Close()
 								}
 								break
@@ -219,7 +220,7 @@ func main() {
 								if err := childCmd.Args(childCmd, flags); err != nil {
 									err = client.Write([]byte(err.Error()))
 									if err != nil {
-										log.Error("Write error", err)
+										log.Fatalln("Write error", err)
 										client.Close()
 									}
 									break
@@ -229,7 +230,7 @@ func main() {
 								if err := childCmd.PreRunE(childCmd, flags); err != nil {
 									err = client.Write([]byte(err.Error()))
 									if err != nil {
-										log.Error("Write error", err)
+										log.Fatalln("Write error", err)
 										client.Close()
 									}
 									break
@@ -242,7 +243,7 @@ func main() {
 								if err := childCmd.RunE(childCmd, flags); err != nil {
 									err = client.Write([]byte(err.Error()))
 									if err != nil {
-										log.Error("Write error", err)
+										log.Fatalln("Write error", err)
 										client.Close()
 									}
 									break
@@ -255,7 +256,7 @@ func main() {
 							outBuf.Reset()
 							err = client.Write(out)
 							if err != nil {
-								log.Error("Write error", err)
+								log.Fatalln("Write error", err)
 								client.Close()
 								break
 							}

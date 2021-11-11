@@ -1,15 +1,14 @@
-package common
+package main
 
 import (
 	"context"
 	"git.fd.io/govpp.git/api"
-	"git.fd.io/govpp.git/core"
 )
 
 // Common features for cli commands
 type Common struct {
-	Root     string
-	Connection *core.Connection
+	Routes map[string]string
+	Stream   api.Stream
 	Channel  api.Channel
 	Context  context.Context
 	Cancel   context.CancelFunc

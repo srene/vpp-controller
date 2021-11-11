@@ -1,13 +1,11 @@
-package out
+package main
 
 import (
 	"bytes"
 	"encoding/json"
 
-	logging "github.com/ipfs/go-log/v2"
 )
 
-var log = logging.Logger("out")
 
 type Printer interface {
 	Println(...interface{})

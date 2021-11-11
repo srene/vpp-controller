@@ -2,9 +2,15 @@
 package cmd
 
 import (
+	"context"
+	"time"
+
 	//"flag"
 	"fmt"
 	"git.fd.io/govpp.git/core"
+	"git.fd.io/govpp.git/examples/binapi/interfaces"
+	"git.fd.io/govpp.git/examples/binapi/vpe"
+
 	//logging "github.com/ipfs/go-log/v2"
 	"github.com/srene/vpp-controller/common"
 	"os"
@@ -16,6 +22,7 @@ import (
 	"git.fd.io/govpp.git"
 	//"git.fd.io/govpp.git/adapter/socketclient"
 )
+var errors []error
 
 //var log = logging.Logger("cmd")
 
@@ -52,12 +59,50 @@ func InitDaemonCmd(comm *common.Common) *cobra.Command {
 				}
 			}
 
+
 			// check compatibility of used messages
 			ch, err := conn.NewAPIChannel()
 
-			comm. = ch
+			//comm.Connection = conn
+			comm.Channel = ch
 			fmt.Println(datahopCli)
 			fmt.Println("VPP controller daemon running")
+
+			if err != nil {
+				log.Fatalln("ERROR: creating channel failed:", err)
+			}
+			defer ch.Close()
+			if err := ch.CheckCompatiblity(vpe.AllMessages()...); err != nil {
+				log.Fatal(err)
+			}
+			if err := ch.CheckCompatiblity(interfaces.AllMessages()...); err != nil {
+				log.Fatal(err)
+			}
+
+			// process errors encountered during the example
+			defer func() {
+				if len(errors) > 0 {
+					fmt.Printf("finished with %d errors\n", len(errors))
+					os.Exit(1)
+				} else {
+					fmt.Println("finished successfully")
+				}
+			}()
+
+			// send and receive messages using stream (low-low level API)
+			stream, err := conn.NewStream(context.Background(),
+				core.WithRequestSize(50),
+				core.WithReplySize(50),
+				core.WithReplyTimeout(2*time.Second))
+			if err != nil {
+				panic(err)
+			}
+			defer func() {
+				if err := stream.Close(); err != nil {
+					logError(err, "closing the stream")
+				}
+			}()
+
 			var sigChan chan os.Signal
 			sigChan = make(chan os.Signal, 1)
 			signal.Notify(sigChan, os.Interrupt)

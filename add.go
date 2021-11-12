@@ -44,17 +44,29 @@ func InitAddCmd(comm *Common) *cobra.Command {
 	}
 }
 
+
+
 func updateRoute(ch api.Channel, route string) error {
 	ip,_:= ip_types.ParseIP6Address("1::1:999")
 	ip_sid,_:= ip_types.ParseIP6Address(route)
 	sids :=[16]ip_types.IP6Address{ip_sid}
+
+	sr_delete := &sr.SrPolicyDel{BsidAddr: ip,
+	}
+	sr_delete_reply := &sr.SrPolicyDelReply{}
+
+	err := ch.SendRequest(sr_delete).ReceiveReply(sr_delete_reply)
+	if err != nil {
+		log.Fatalln("ERROR: deleting policy:", err)
+		return err
+	}
 	sr_create := &sr.SrPolicyAdd{BsidAddr: ip,
 		IsEncap: true,
 		Sids: sr.Srv6SidList{NumSids:1,Sids: sids},
 	}
 	sr_create_reply := &sr.SrPolicyAddReply{}
 
-	err := ch.SendRequest(sr_create).ReceiveReply(sr_create_reply)
+	err = ch.SendRequest(sr_create).ReceiveReply(sr_create_reply)
 
 	return err
 

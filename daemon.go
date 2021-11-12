@@ -227,8 +227,8 @@ func createPolicy(ch api.Channel) {
 		fmt.Errorf("create_encap: %w\n", err)
 	}
 
-	fmt.Printf("create_encap: ret val %d\n",
-		int(sr_encap_reply.Retval))
+	//fmt.Printf("create_encap: ret val %d\n",
+	//	int(sr_encap_reply.Retval))
 
 	time.Sleep(2 * time.Second)
 	ip,_:= ip_types.ParseIP6Address("1::1:999")
@@ -254,8 +254,8 @@ func createPolicy(ch api.Channel) {
 		fmt.Errorf("create_policy: %w\n", err)
 	}
 
-	fmt.Printf("create_policy: ret val %d\n",
-		int(sr_create_reply.Retval))
+	//fmt.Printf("create_policy: ret val %d\n",
+	//	int(sr_create_reply.Retval))
 
 	ip_steering,_:=ip_types.ParsePrefix("b001::/64")
 	sr_steering := &sr.SrSteeringAddDel{IsDel: false,
@@ -269,6 +269,6 @@ func createPolicy(ch api.Channel) {
 		fmt.Errorf("create_steering %w\n", err)
 	}
 
-	fmt.Printf("create steering: ret val %d\n",
-		int(sr_steering_reply.Retval))
+	//fmt.Printf("create steering: ret val %d\n",
+	//	int(sr_steering_reply.Retval))
 }

@@ -24,10 +24,10 @@ func InitAddCmd(comm *Common) *cobra.Command {
 			if comm.Stream == nil {
 				return errors.New("daemon not running")
 			}
-			if val, ok := comm.Routes[prefix]; ok {
+			if _, ok := comm.Routes[prefix]; ok {
 				//do something here
 				log.Println("Updating route")
-				updateRoute(comm.Channel, val)
+				updateRoute(comm.Channel, route)
 			} else {
 				log.Println("Adding route")
 			}
@@ -47,19 +47,24 @@ func InitAddCmd(comm *Common) *cobra.Command {
 
 
 func updateRoute(ch api.Channel, route string) error {
+
 	ip,_:= ip_types.ParseIP6Address("1::1:999")
-	ip_sid,_:= ip_types.ParseIP6Address(route)
-	sids :=[16]ip_types.IP6Address{ip_sid}
 
 	sr_delete := &sr.SrPolicyDel{BsidAddr: ip,
 	}
 	sr_delete_reply := &sr.SrPolicyDelReply{}
 
 	err := ch.SendRequest(sr_delete).ReceiveReply(sr_delete_reply)
+
 	if err != nil {
 		log.Fatalln("ERROR: deleting policy:", err)
 		return err
 	}
+
+	ip_sid,_:= ip_types.ParseIP6Address(route)
+
+	sids :=[16]ip_types.IP6Address{ip_sid}
+
 	sr_create := &sr.SrPolicyAdd{BsidAddr: ip,
 		IsEncap: true,
 		Sids: sr.Srv6SidList{NumSids:1,Sids: sids},

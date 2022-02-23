@@ -1,0 +1,83 @@
+package main
+
+import "C"
+import (
+	"context"
+	"fmt"
+	"log"
+	"math"
+	"os"
+	"sort"
+	"sync"
+	"time"
+
+	"git.fd.io/govpp.git/api"
+	interfaces "git.fd.io/govpp.git/binapi/interface"
+	"git.fd.io/govpp.git/binapi/vpe"
+	"git.fd.io/govpp.git/binapi/ip"
+	"git.fd.io/govpp.git/binapi/ip_types"
+	"git.fd.io/govpp.git/binapi/sr"
+
+	"regexp"
+	"strconv"
+	"strings"
+
+	//"flag"
+	"git.fd.io/govpp.git/core"
+	"os/signal"
+
+	"github.com/spf13/cobra"
+
+	"git.fd.io/govpp.git"
+)
+
+func Query(msg string) int {
+	conn, connEv, err := govpp.AsyncConnect("/run/vpp/api2.sock", core.DefaultMaxReconnectAttempts, core.DefaultReconnectInterval)
+	if err != nil {
+		log.Fatalln("ERROR:", err)
+	}
+	defer conn.Disconnect()
+
+	// wait for Connected event
+	select {
+	case e := <-connEv:
+		if e.State != core.Connected {
+			log.Fatalln("ERROR: connecting to VPP failed:", e.Error)
+		}
+	}
+
+	// check compatibility of used messages
+	ch, err := conn.NewAPIChannel()
+
+	if err != nil {
+		log.Fatalln("ERROR: creating channel failed:", err)
+	}
+	defer ch.Close()
+
+
+	// process errors encountered during the example
+	defer func() {
+		if len(errs) > 0 {
+			fmt.Printf("finished with %d errors\n", len(errs))
+			os.Exit(1)
+		} else {
+			fmt.Println("finished successfully")
+		}
+	}()
+
+	// send and receive messages using stream (low-low level API)
+	stream, err := conn.NewStream(context.Background(),
+		core.WithRequestSize(50),
+		core.WithReplySize(50),
+		core.WithReplyTimeout(2*time.Second))
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Fatalln(err, "closing the stream")
+		}
+	}()
+	return 0
+}
+func main() {}

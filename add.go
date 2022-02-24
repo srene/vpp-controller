@@ -17,7 +17,7 @@ func InitAddCmd(comm *Common) *cobra.Command {
 		Short: "add route",
 		Long: ``,
 		RunE: func(cmd *cobra.Command, args []string) error{
-			fmt.Println("Add command")
+			fmt.Println("Add command",args[0],args[1])
 			prefix := args[0]
 			route := args[1]
 
@@ -79,7 +79,7 @@ func updateRoute(ch api.Channel, route string) error {
 func parseFormat(cmd *cobra.Command) Format {
 	pFlag, _ := cmd.Flags().GetBool("pretty")
 	jFlag, _ := cmd.Flags().GetBool("json")
-	log.Println(pFlag, jFlag)
+	//log.Println(pFlag, jFlag)
 	var f Format
 	if jFlag {
 		f = Json

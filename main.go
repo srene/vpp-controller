@@ -180,7 +180,7 @@ func main() {
 								break
 							}
 							commandStr := string(ip)
-							log.Println("run command :", commandStr)
+							//log.Println("run command :", commandStr)
 							var (
 								childCmd *cobra.Command
 								flags    []string

@@ -116,6 +116,7 @@ func InitDaemonCmd(comm *Common) *cobra.Command {
 			//t := time.NewTicker(3 * time.Second)
 
 			var pkt int = 0
+			createPolicy(ch)
 			for {
 				go ipRouteDumpStream(stream,result)
 				//fmt.Println("2")
@@ -129,7 +130,7 @@ func InitDaemonCmd(comm *Common) *cobra.Command {
 					}
 				}
 				pkt = pktTemp
-				time.Sleep(1 * time.Second)
+				time.Sleep(100 * time.Millisecond)
 			}
 
 			var sigChan chan os.Signal
@@ -173,7 +174,7 @@ Loop:
 
 		switch msg.(type) {
 		case *ip.IPRouteDetails:
-			//fmt.Printf("%+v\n",msg)
+		//	fmt.Printf("%+v\n",msg)
 			matched, _ := regexp.MatchString("::/0", fmt.Sprintf("%+v\n",msg))
 			if matched {
 				//fmt.Println(msg)

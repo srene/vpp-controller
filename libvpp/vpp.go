@@ -29,7 +29,7 @@ func Query() int {
   	defer mtx.Unlock()
 	//stream,_,err:=connect()
 	//fmt.Println("starting connection")
-        conn, connEv, err := govpp.AsyncConnect("/run/vpp/api2.sock", core.DefaultMaxReconnectAttempts, core.DefaultReconnectInterval)
+        conn, connEv, err := govpp.AsyncConnect("/run/vpp/api.sock", core.DefaultMaxReconnectAttempts, core.DefaultReconnectInterval)
         if err != nil {
                 log.Fatalln("ERROR:", err)
         }

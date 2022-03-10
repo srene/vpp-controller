@@ -144,7 +144,7 @@ func CreatePolicy(prefix string,destination string) {
 	}*/
 
 	fmt.Println("starting connection")
-        conn, connEv, err := govpp.AsyncConnect("/run/vpp/api2.sock", core.DefaultMaxReconnectAttempts, core.DefaultReconnectInterval)
+        conn, connEv, err := govpp.AsyncConnect("/run/vpp/api.sock", core.DefaultMaxReconnectAttempts, core.DefaultReconnectInterval)
         if err != nil {
                 log.Fatalln("ERROR:", err)
         }
@@ -275,7 +275,7 @@ func getPacket(s string) int {
 func connect() (api.Stream,api.Channel,error) {
 
 	fmt.Println("starting connection")
-        conn, connEv, err := govpp.AsyncConnect("/run/vpp/api2.sock", core.DefaultMaxReconnectAttempts, core.DefaultReconnectInterval)
+        conn, connEv, err := govpp.AsyncConnect("/run/vpp/api.sock", core.DefaultMaxReconnectAttempts, core.DefaultReconnectInterval)
         if err != nil {
                 log.Fatalln("ERROR:", err)
         }
